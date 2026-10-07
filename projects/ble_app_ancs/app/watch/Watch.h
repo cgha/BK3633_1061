@@ -1,0 +1,215 @@
+/******************************************************************************
+File: Watch.h
+Creator: Zeno Zhang
+Desc:手表功能
+******************************************************************************/
+
+#ifndef WATCH_H
+#define WATCH_H
+
+#include "app.h"
+#include "ZenoRtc.h"
+#include "DataManage.h"
+#include "hrs3300.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+  
+//电池电量定义
+#define BAT_VOL_LEVEL_MIN       2050
+#define BAT_VOL_LEVEL_MAX       2950
+  
+//手表消息事件定义  
+#define WATCH_MSG_BLE_STATE_CHANGE_EVT          0x0001  //蓝牙状态改变消息
+#define WATCH_CHAR_CHANGE_EVT                   0x0002
+#define WATCH_PAIRING_STATE_EVT                 0x0004
+#define WATCH_PASSCODE_NEEDED_EVT               0x0008
+  
+  
+#define WATCH_MSG_SPI_EVT                       0x0010  
+#define WATCH_MSG_STOPWATCH_EVT                 0x0020  
+#define WATCH_MSG_USER_SET_EVT                  0x0040  
+#define WATCH_MSG_SPI_EVT1                      0x0080  
+#define WATCH_MSG_KEY_CHANGE_EVT                0x0100  //手表按键改变消息
+#define WATCH_MSG_RTC_UPDATE_EVT                0x0200  //手表按键改变消息
+#define WATCH_MSG_CLOCK_TIMER_EVT               0x0400  //手表定时器消息
+#define WATCH_MSG_MUSIC_PLAY                    0x0800  //手表蜂鸣器事件
+#define WATCH_MSG_VIBRATION_EVT                 0x1000  //手表齿轮箱消息
+#define WATCH_MSG_SENSOR_CONTROLLER_EVT         0x2000  //SensorController消息
+#define WATCH_MSG_MESSAGE_REMIND_EVT            0x4000  //SensorController消息
+#define WATCH_MSG_WATCH_START_EVT               0x8000  //Watch Start消息
+
+#define WATCH_MSG_EVT_ALL                   (WATCH_MSG_KEY_CHANGE_EVT        | \
+                                         WATCH_MSG_RTC_UPDATE_EVT        | \
+                                         WATCH_MSG_CLOCK_TIMER_EVT     | \
+                                         WATCH_MSG_GEAR_EVT  | \
+                                         WATCH_MSG_VIBRATION_EVT | \
+                                         WATCH_MSG_SENSOR_CONTROLLER_EVT)  
+
+
+//手表Clock定时器编号  
+#define WATCH_CLOCK_TIMER_BLE_SEND               1  //手表按键改变消息  
+  
+//手表定时器定时时间
+#define TIMER_PERIOD_BLE_SEND                   50      //BLE_SEND定时器的重复周期为50MS
+#define TIMER_PERIOD_WATCH_START                1000      //BLE_SEND定时器的重复周期为1000MS
+  
+  
+
+#define SPI_CMD_SET_TIME	0x81
+#define	SPI_CMD_SET_PERSON	0x82
+#define SPI_CMD_SET_VERSION	0x84
+#define SPI_CMD_SET_ALARM		0x85
+#define SPI_CMD_SET_BT_STATE	0x86
+#define SPI_CMD_SET_SLEEP_PERIOD	0x87
+#define SPI_CMD_NOTIFICATION	0x88
+#define	SPI_CMD_GET_TOTAL_RECORD	0x89
+#define SPI_CMD_READY_POWER_OFF	0x8D
+#define SPI_CMD_SET_TIMEMODE	0x8E
+#define SPI_CMD_GET_MCU_TIME	0x8F
+#define SPI_CMD_SET_HR_STATE	0x90
+#define SPI_CMD_APP_TRIG_HR		0x91
+#define	SPI_CMD_MCU_TIME		0x01
+#define	SPI_CMD_MCU_ALARM		0x05
+#define SPI_CMD_MCU_TOTAL_RECORD	0x09
+#define SPI_CMD_MCU_15MIN_RECORD	0x0A
+#define SPI_CMD_MCU_SET_BT_STATE	0x0B
+#define SPI_CMD_MCU_TAKE_PHOTO		0x0C
+#define SPI_CMD_MCU_POWER_ON_OFF	0x0D
+#define SPI_CMD_MCU_HR_MODE			0x0E 
+#define SPI_CMD_MCU_GS_DATA			0x0F
+
+#define SLEEP_STAGE_IDLE 0x00
+#define SLEEP_STAGE_ENTERING	0x01
+#define SLEEP_STAGE_CHK_FAKE	0x02
+#define SLEEP_STAGE_ENTERED		0x04
+#define SLEEP_STAGE_ON_TABLE	0x08
+
+#define POWERON_SYNC
+
+enum{
+	BT_IDLE,
+	BT_ADVERTISING,
+	BT_CONNECTED,
+	BT_STOPPING_ADV
+};
+
+enum{
+	DEEP_SLEEP,
+	NORMAL_SLEEP,
+	LIGHT_SLEEP,
+	AWAKE
+};
+
+typedef enum
+{ 
+	RTC_NOTIFY_OFF   =      0x00,
+	RTC_NOTIFY_SEC     =    0x01,
+	RTC_NOTIFY_MIN     =    0x02,
+	RTC_NOTIFY_HOUR    =    0x04,  
+	RTC_NOTIFY_DAY     =    0x08,  
+	RTC_NOTIFY_MONTH   =    0x10,
+	RTC_NOTIFY_YEAR    =    0x20,
+	RTC_NOTIFY_5SEC    =    0x40,
+	RTC_NOTIFY_ALL     =    0x7F
+}RTC_NOTIFY_t;
+
+typedef enum
+{ 
+	DELAY_ACK_CMD_NONE	= 0x00,
+	DELAY_ACK_CMD_0x07   =      0x01,
+	DELAY_ACK_CMD_0x08 = 0x02,
+	DELAY_ACK_CMD_0x41 = 0x04,
+}DELAY_ACK_CMD_t;
+
+typedef enum{
+	NOTIFY_NONE,
+	NOTIFY_CALL = 0x01,
+	NOTIFY_MSG = 0x02,
+	NOTIFY_MQQ = 0x04,
+	NOTIFY_WECHAT = 0x08,
+	NOTIFY_TWITTER = 0x10,
+	NOTIFY_FACEBOOK = 0x20,
+	NOTIFY_WHATSAPP = 0x40,
+	NOTIFY_SKYPE = 0x80,
+	NOTIFY_MAIL = 0x100,
+	NOTIFY_TIKTOK = 0x200,
+	NOTIFY_INSTAGRAM = 0x400,
+	NOTIFY_LINE = 0x800,
+	NOTIFY_KAKAO = 0x1000,
+	NOTIFY_TELEGRAM = 0x2000,
+	NOTIFY_VIBER = 0x4000,
+	NOTIFY_LINKEDIN = 0x8000,
+	NOTIFY_OTHER_APP = 0x10000,
+}NOTIFY_TYPE;
+
+extern uint8_t poweringOff;
+/* Includes */
+
+/*******************************************************************
+Function: WatchIniti
+Desc: 手表初始化
+Input: void
+Output: void
+*******************************************************************/
+void WatchIniti(void);
+
+/*******************************************************************
+Function: Watch_Start
+Desc: 手表初始化运行开始
+Input: void
+Output: void
+*******************************************************************/
+void WatchStart(uint8_t IsWakeUpFromShutDown);
+
+/*******************************************************************
+Function: Watch_KeyEvent
+Desc: 手表按键事件处理
+Input: uint8_t key_val 按键值
+Output: void
+*******************************************************************/
+void Watch_KeyEvt(uint8_t key_val);
+
+/*******************************************************************
+Function: Watch_BleStateChangeEvt
+Desc: 手表蓝牙状态改变事件处理
+Input: uint8_t state 当前蓝牙状态
+Output: void
+*******************************************************************/
+void Watch_BleStateChangeEvt(uint8_t state);
+
+uint8_t getCurBleState(void);
+
+/*******************************************************************
+Function: Watch_MsgHandle
+Desc: 手表消息事件处理
+Input: uint16_t event   消息事件
+       uint8_t state    消息状态
+Output: void
+*******************************************************************/
+void Watch_MsgHandle(uint16_t event, uint8_t state);
+void Watch_RtcUpdateEvt(void);
+
+void spi_slave_int_init(void);
+void spi_setBtVersion(void);
+void spi_setBtState(uint8_t state);
+void spi_setBtTime(RTC * rtc_time);
+void spi_setPerson(PERSON * person);
+void spi_setAlarm(void);
+void spi_notification(uint8_t notification);
+void spi_setTimeMode(uint8_t timeMode);
+void spi_setSleepPeriod(SLEEP_PERIOD * sleepPeriod);
+void spi_getTotalRecord(void);
+void spi_send_hr_state(hrs3300_results_t * hrs3300_result);
+void spi_send_app_trig_hr(void);
+
+void setAncsNotify(uint32_t notify);
+void Watch_AncsNotifyChk(uint8_t *pAncsChar);
+
+void spi_cmd_parse(void);
+void Host_CmdAnalyze(unsigned char *CmdBuf);
+void AnalyzeSleepData(void);
+void Watch_RealStepsSend(void);
+unsigned int GetAncsMask(void);;
+#endif

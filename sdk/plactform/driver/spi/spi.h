@@ -1,0 +1,131 @@
+/**
+ ****************************************************************************************
+ *
+ * @file spi.h
+ *
+ * @brief SPI Driver for SPI operation.
+ *
+ * Copyright (C) Beken 2009-2015
+ *
+ *
+ ****************************************************************************************
+ */
+
+#ifndef _SPI_H_
+#define _SPI_H_
+
+/**
+ ****************************************************************************************
+ * @defgroup SPI SPI
+ * @ingroup DRIVERS
+ * @brief SPI driver
+ *
+ * @{
+ *
+ ****************************************************************************************
+ */
+
+/* 
+ * INCLUDE FILES
+ ****************************************************************************************
+ */
+#include <stdbool.h>          // standard boolean definitions
+#include <stdint.h>           // standard integer functions
+
+/*
+ * ENUMERATION DEFINITIONS
+ *****************************************************************************************
+ */
+
+#define SPI_ENABLE					0
+ 
+#define NUMBER_ROUND_UP(a,b)        ((a) / (b) + (((a) % (b)) ? 1 : 0))
+
+#define SPI_DEFAULT_CLK             16000000
+
+/// 1MHZ baudrate supported by this SPI (in bps)
+#define SPI_BAUD_1MHZ         	1000000
+
+/// Default baudrate supported by this SPI (in bps)
+#define SPI_BAUD_4MHZ         	4000000
+
+/// Default baudrate supported by this SPI (in bps)
+#define SPI_DEFAULT_BAUD      SPI_BAUD_1MHZ
+
+
+/*
+ * ENUMERATION DEFINITIONS
+ *****************************************************************************************
+ */
+#define GPIO_SPI_CFG            		REG_APB5_GPIOA_CFG
+#define GPIO_SPI_SCK_PIN          	4
+#define GPIO_SPI_MOSI_PIN        	5
+#define GPIO_SPI_MISO_PIN        	6
+#define GPIO_SPI_NSS_PIN           	7
+
+//#define USE_SPI_BUF
+
+#define 	SPI_IDLE 	0
+#define 	SPI_BUSY 	1
+
+#define SPI_CLK_DIVID_SET     (NUMBER_ROUND_UP(SPI_DEFAULT_CLK/2, SPI_DEFAULT_BAUD) - 1)
+
+#define SPI_IRQ_PIN		0x17//0x35
+#define SPI_SYNC_PIN	0x16//0x14
+#define SPI_READY_PIN	0x11
+//#define TEST_WAKE_PIN	0x32
+
+#define SPI_BUF_LEN	20
+
+///SPI Character format
+enum SPI_CHARFORMAT
+{
+ 	SPI_CHARFORMAT_8BIT = 0x00UL,
+    SPI_CHARFORMAT_16BIT = 0x01UL
+};
+
+enum CKPHA
+{
+	CKPHA_CLK1 = 0x00UL,
+	CKPHA_CLK2 = 0x01UL
+};
+
+enum CKPOL
+{
+	CKPOL_L = 0x00UL,
+	CKPOL_H = 0x01UL
+};
+
+enum NSSMD
+{
+	LINE3_NSS_NULL = 0,
+	LINE4_NSS_CHIP = 1,
+	LINE4_NSS_M = 2,
+	LINE4_NSS_S_E =  3,
+};
+
+extern uint32_t spiSendTime;
+/*
+ * FUNCTION DECLARATIONS
+ ****************************************************************************************
+ */
+
+void spi_init(uint8_t freq_div);
+
+uint8_t spi_is_busy(void);
+
+void spi_write_read(uint8_t *wbuf, uint32_t w_size, uint8_t *rbuf, uint32_t r_size,uint32_t r_off);
+
+uint8_t spi_slave_init(void);
+void spi_slave_start(void);
+void spi_slave_isr(void);
+void spi_slave_DoneData(void);
+void spi_slave_reset(void);
+void spi_slave_int_init(void);
+uint8_t is_spi_busy(void);
+uint8_t SPI_BlockTransfer(void);
+uint8_t spi_get_status(void);
+uint8_t is_spi_on(void);
+
+/// @} UART
+#endif /* _UART_H_ */

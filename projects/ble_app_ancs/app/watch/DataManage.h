@@ -1,0 +1,242 @@
+/* ========================================
+ *
+ * Copyright YOUR COMPANY, THE YEAR
+ * All Rights Reserved
+ * UNPUBLISHED, LICENSED SOFTWARE.
+ *
+ * CONFIDENTIAL AND PROPRIETARY INFORMATION
+ * WHICH IS THE PROPERTY OF your company.
+ *
+ * ========================================
+*/
+
+#ifndef DATA_MANAGE_H
+#define DATA_MANAGE_H
+    #include "app.h"
+		#include "ZenoRtc.h"
+
+    #define DAY_IS_RECORD     0x5a
+    #define DAY_IS_NOT_RECORD 0xff
+    #define RECORD_NUM_MAX  15
+
+    #define ALARM_NUM_MAX   3
+    #define DEVICE_ID_LENG                6
+    #define BT_NAME_LENG      14
+    //define the data length in one day
+    #define DATA_LENG_DAY               sizeof(DAY_RECORD)
+		
+	#define HR_DAY_MAX	7
+	#define HR_RECORD_MAX_ONE_DAY	10
+
+      #ifdef DATA_MANAGE_INTERNAL
+        #define EXT  
+      #else
+        #define EXT extern 
+      #endif
+
+typedef union
+{
+	uint8_t M_UINT8[4];
+	uint32_t M_UINT32;
+}UNION_UINT32;
+
+typedef struct
+{
+	uint8_t day;
+	uint8_t hour;
+	uint8_t min;
+}SLEEP_TIME;
+
+typedef struct
+{
+	uint8_t sleepData[4];
+}SLEEP_DATA;
+
+      typedef  struct
+      {
+        unsigned char Num;
+        unsigned char IsEn;
+        unsigned char Hour;
+        unsigned char Min;
+        unsigned char Week;   
+        unsigned char IsPassed;
+      }__attribute__((packed)) ALARM;
+
+      typedef  struct
+      {
+        unsigned char StartHour;
+        unsigned char StartMin;
+        unsigned char EndHour;
+        unsigned char EndMin;
+        unsigned char WeekEn;
+        unsigned char VibPeriod;
+      }__attribute__((packed)) SPORT_PERIOD;
+
+      typedef  struct
+      {
+        //unsigned char IsSleepData;
+        uint16_t Kll;
+        uint16_t Steps;
+		uint8_t sleepQ_Data[4];/*if need sleep data, the SPORT_DATA > FLASH_SIZE_PAGE, should take care*/
+        //uint16_t Dist;
+        //uint16_t RunSteps;
+      }__attribute__((packed)) SPORT_DATA;
+
+      typedef  struct 
+      {
+        uint32_t StepsTotal;
+        uint32_t RunStepsTotal;
+        uint32_t KllTotal;
+        uint32_t DistTotal;
+        uint16_t  SportTimeMinTotal;
+        uint16_t TargetCompleteRate;
+//        uint16_t Speed;
+//        uint32_t Ex;
+		  #ifdef DISP_STEP_MAP
+		uint16_t steps2Hour[12];
+		  #endif
+      }__attribute__((packed)) SPORT_DATA_TOTAL;
+
+      typedef  struct
+      {
+        unsigned char Year;
+        unsigned char Month;
+        unsigned char Day;
+        unsigned char QuarterIndex;    
+      }__attribute__((packed)) SAVE_TIME;
+      
+      typedef  struct
+      {
+        unsigned char Day;
+        unsigned char Month;
+        unsigned char Year;       
+      }__attribute__((packed))DAY_RECORD_HEAD;
+
+      typedef  struct
+      {
+        DAY_RECORD_HEAD Head;
+        SPORT_DATA_TOTAL SportDataTotal;
+        unsigned char SportHead[12];
+        SPORT_DATA SportData[96];
+      }__attribute__((packed))DAY_RECORD;
+      
+      typedef  struct
+      {
+        DAY_RECORD_HEAD Head;
+        SPORT_DATA_TOTAL SportDataTotal;
+        unsigned char SportHead[12];
+      }__attribute__((packed))DAY_RECORD_NODATA;
+	  
+	  typedef struct
+	  {
+		  //unsigned char sec;
+		  unsigned char min;
+		  unsigned char hour;
+		  unsigned char day;
+		  unsigned char week;
+		  unsigned char month;
+		  unsigned char year;
+		  unsigned char AvarageHR;
+		  unsigned char MaxHR;
+		  unsigned char MinHR;
+	  }__attribute__((packed))HR_RECORD;
+      
+      typedef  struct
+      {
+        unsigned char Sex;
+        unsigned char Age;
+        uint16_t Stature;
+        uint16_t Weight;
+        uint16_t StepLength;
+        uint32_t TargetSteps;
+    	unsigned char TargetType;
+        unsigned char DistUnit;
+        unsigned char TimeDispMode;
+        unsigned int ANCS_Mask;
+      }__attribute__((packed)) PERSON;
+	  
+	  typedef  struct
+      {
+		unsigned char en;
+        unsigned char StartHour;
+        unsigned char StartMin;
+        unsigned char EndHour;
+        unsigned char EndMin;
+      }__attribute__((packed)) SLEEP_PERIOD;
+	  
+
+typedef struct
+{
+    uint8_t head[6];
+    uint32_t dayRecordMask;
+    uint8_t curDayIndex;
+    SAVE_TIME lastSaveTime;
+	
+    PERSON personInfo;
+    uint8_t devID[DEVICE_ID_LENG];
+//    uint8_t btName[14];
+    uint8_t productInfo[5];
+    RTC saveTime;
+    uint8_t activeCode[6];
+    SPORT_PERIOD sportPeriod; 
+	SLEEP_PERIOD sleepPeriod;
+	ALARM	alarmInfo[3];
+
+}__attribute__ ((packed)) EE_SETTING_T;
+    
+uint8_t EEPROM_R_Reg_Multi(uint8_t pageNum, uint16_t addr,uint16_t leng,unsigned char *data_buf);
+uint8_t EEPROM_W_Reg_Multi(uint8_t pageNum, uint16_t addr ,uint16_t leng,unsigned char *data_buf); 
+    EXT void DM_Format(void);
+    EXT void DM_Initi(void);  
+    EXT void DM_SaveSportData(SAVE_TIME *pSaveTime, SPORT_DATA *pSportData,SPORT_DATA_TOTAL *pSprotDataTotal);
+    EXT unsigned char DM_IsThisDaySaved(unsigned char DayNum);
+    EXT void DM_GetThisDaySportData(unsigned char DayNum, unsigned char *pDataRecord);  
+    EXT void DM_SetPerson(PERSON *pPerson);
+    EXT void DM_GetPerson(PERSON *pPerson);
+    EXT void DM_SetDevID(unsigned char * pDevID,unsigned char len);
+    EXT void DM_GetDevID(unsigned char * pDevID,unsigned char len);
+    EXT void DM_SetPerson(PERSON *pPerson);
+    EXT void DM_GetPerson(PERSON *pPerson);
+    EXT uint32_t GetDayRecordMask(void);
+    EXT unsigned char DM_DelDayRecord(unsigned char DayNum);
+    EXT void DM_NewDay(SAVE_TIME *pSaveTime);
+    EXT void DM_SetActiveCode(unsigned char * pAicticeCode,unsigned char len);
+    EXT void DM_GetActiveCode(unsigned char * pAicticeCode,unsigned char len);
+    EXT uint16_t DM_GetDayIndexInYear(uint16_t year,unsigned char month,unsigned char day);
+    EXT void DM_SetLastSaveTime(unsigned char *save_time);
+    EXT void DM_GetLastSaveTime(unsigned char *last_save_time);
+    EXT void DM_SetSaveTime(unsigned char *save_time);
+    EXT void DM_GetSaveTime(unsigned char *save_time);
+    EXT unsigned char DM_GetFactoryFlag(void);
+
+    EXT void DM_SetAlarm(ALARM *pAlarm,unsigned char Num);
+    EXT void DM_GetAlarm(ALARM *pAlarm,unsigned char Num);
+    EXT void DM_SetSportPeriod(SPORT_PERIOD *pSportPeriod);
+    EXT void DM_GetSportPeriod(SPORT_PERIOD *pSportPeriod);
+	EXT void DM_SetSleepPeriod(SLEEP_PERIOD *pSleepPeriod);
+	EXT void DM_GetSleepPeriod(SLEEP_PERIOD *pSleepPeriod);
+
+    EXT void DM_SetKarmaUnit(uint16_t KarmaUnit);
+
+    EXT void DM_SetDispMode(unsigned char mode);
+    EXT unsigned char DM_GetDispMode(void);
+
+    EXT uint16_t DM_GetKarmaUnit(void);
+
+    EXT void DM_SetBT_Name(unsigned char *pName,unsigned char Len);
+    EXT void DM_GetBT_Name(unsigned char *pName,unsigned char Len);
+    EXT void DM_SetProductInfo(unsigned char *pName,unsigned char Len);
+    EXT void DM_GetProductInfo(unsigned char *pName,unsigned char Len);
+    EXT void DM_SetResetCnt(unsigned char TestData);
+    EXT unsigned char DM_GetResetCnt(void);  
+    EXT void DM_SetTestData(unsigned char TestData);
+    EXT unsigned char DM_GetTestData(void); 
+
+	EXT void DM_SetDistMode(uint8_t distMode);
+	
+	uint8_t FlashSetting_Load(uint8_t *dstBuf, uint16_t byteCount);
+	void EEPROM_Setting_SaveEvent(void);
+	 EXT void DM_SaveDataOneDay(SAVE_TIME *pSaveTime,DAY_RECORD *pDayRecord,unsigned char *p_save_time);
+	void DM_SaveSleepData(SLEEP_TIME* sleepEnterTime,SLEEP_TIME* sleepExitTime);
+#endif  
+/* [] END OF FILE */
